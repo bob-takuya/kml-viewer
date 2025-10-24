@@ -49,30 +49,25 @@ export async function loadKMZ(file) {
       const kmlUrl = networkLink.textContent.trim()
 
       // 開発環境: Viteプロキシを使用
-      // 本番環境: CORSプロキシのフォールバック
+      // 本番環境（GitHub Pages）: 外部CORSプロキシを使用
       const isDevelopment = import.meta.env.DEV
 
       const corsProxies = isDevelopment
         ? [
             `/api/kml?url=${encodeURIComponent(kmlUrl)}`, // Viteプロキシ
-            '', // 直接アクセス
-            `https://api.allorigins.win/raw?url=${encodeURIComponent(kmlUrl)}`,
-            `https://corsproxy.io/?url=${encodeURIComponent(kmlUrl)}`
+            `https://corsproxy.io/?${encodeURIComponent(kmlUrl)}`,
+            `https://api.allorigins.win/raw?url=${encodeURIComponent(kmlUrl)}`
           ]
         : [
-            '', // まず直接アクセスを試す
-            `https://api.allorigins.win/raw?url=${encodeURIComponent(kmlUrl)}`,
-            `https://corsproxy.io/?url=${encodeURIComponent(kmlUrl)}`,
-            `https://cors-anywhere.herokuapp.com/${encodeURIComponent(kmlUrl)}`
+            `https://corsproxy.io/?${encodeURIComponent(kmlUrl)}`, // 本番環境では外部プロキシを優先
+            `https://api.allorigins.win/raw?url=${encodeURIComponent(kmlUrl)}`
           ]
 
       let lastError = null
 
       // 各プロキシを順番に試す
       for (let i = 0; i < corsProxies.length; i++) {
-        const fetchUrl = corsProxies[i].startsWith('/api/kml') || corsProxies[i] === ''
-          ? (corsProxies[i] || kmlUrl)
-          : corsProxies[i]
+        const fetchUrl = corsProxies[i]
 
         try {
           console.log(`試行 ${i + 1}/${corsProxies.length}: ${fetchUrl.substring(0, 100)}...`)
