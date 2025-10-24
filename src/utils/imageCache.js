@@ -274,8 +274,18 @@ export async function fetchAndCacheImage(url) {
   return queuedDownload(async () => {
     const fullStartTime = performance.now()
     try {
-      // 既にプロキシURLの場合はそのまま使用
-      const proxyUrl = url.startsWith('/api/image') ? url : `/api/image?url=${encodeURIComponent(url)}`
+      // プロキシURLを決定（開発環境とGitHub Pagesで切り替え）
+      let proxyUrl
+      if (url.startsWith('/api/image')) {
+        // 既にプロキシURLの場合はそのまま使用
+        proxyUrl = url
+      } else if (import.meta.env.DEV) {
+        // 開発環境: Viteのプロキシを使用
+        proxyUrl = `/api/image?url=${encodeURIComponent(url)}`
+      } else {
+        // 本番環境（GitHub Pages）: 外部CORSプロキシを使用
+        proxyUrl = `https://corsproxy.io/?${encodeURIComponent(url)}`
+      }
 
       console.log(`[ImageCache] Fetching (${activeDownloads}/${MAX_CONCURRENT_DOWNLOADS}):`, url.substring(0, 80))
 
