@@ -147,6 +147,22 @@ export async function loadKML(file) {
 }
 
 /**
+ * ABGR形式（KML）の色をRGB 16進数形式に変換
+ * KML: aabbggrr (alpha, blue, green, red)
+ * 出力: #rrggbb
+ */
+function abgrToHex(abgr) {
+  if (!abgr || abgr.length !== 8) return null
+
+  // ABGRからRGBを抽出
+  const rr = abgr.substring(6, 8)
+  const gg = abgr.substring(4, 6)
+  const bb = abgr.substring(2, 4)
+
+  return `#${rr}${gg}${bb}`
+}
+
+/**
  * KMLテキストをパースしてポイント情報を抽出
  */
 function parseKML(kmlText) {
@@ -160,6 +176,31 @@ function parseKML(kmlText) {
   if (parserError) {
     perfLogger.end('KMLパース', 'エラー')
     throw new Error('KMLのパースに失敗しました: ' + parserError.textContent)
+  }
+
+  // スタイル情報を抽出してマップを作成
+  const styles = xml.getElementsByTagName('Style')
+  const styleMap = new Map()
+
+  for (let i = 0; i < styles.length; i++) {
+    const style = styles[i]
+    const styleId = style.getAttribute('id')
+
+    if (styleId) {
+      // IconStyleから色を取得
+      const iconStyle = style.querySelector('IconStyle')
+      if (iconStyle) {
+        const colorElement = iconStyle.querySelector('color')
+        if (colorElement) {
+          const abgrColor = colorElement.textContent.trim()
+          const hexColor = abgrToHex(abgrColor)
+          if (hexColor) {
+            styleMap.set(`#${styleId}`, hexColor)
+            console.log(`スタイル ${styleId}: ${abgrColor} → ${hexColor}`)
+          }
+        }
+      }
+    }
   }
 
   const placemarks = xml.getElementsByTagName('Placemark')
@@ -246,7 +287,14 @@ function parseKML(kmlText) {
     }
 
     // スタイル情報を取得（オプション）
-    const styleUrl = placemark.querySelector('styleUrl')?.textContent
+    const styleUrlElement = placemark.querySelector('styleUrl')
+    const styleUrl = styleUrlElement?.textContent
+
+    // スタイルから色を取得
+    let color = null
+    if (styleUrl && styleMap.has(styleUrl)) {
+      color = styleMap.get(styleUrl)
+    }
 
     points.push({
       id: `point-${i}`,
@@ -257,7 +305,8 @@ function parseKML(kmlText) {
       lng: parseFloat(coords[0]),
       lat: parseFloat(coords[1]),
       alt: coords.length > 2 ? parseFloat(coords[2]) : 0,
-      styleUrl
+      styleUrl,
+      color // 色情報を追加
     })
   }
   perfLogger.end('Placemark処理', `${points.length}個`)

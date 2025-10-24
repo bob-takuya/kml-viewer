@@ -110,9 +110,13 @@ export const BirdEyeView = memo(function BirdEyeView({ points, origin, onPointCl
     return result
   }, [points, origin])
 
-  // マーカーの位置リスト（インスタンシング用）
+  // マーカーの位置と色のリスト（インスタンシング用）
   const markerPositions = useMemo(() => {
     return pointsData.map(data => data.markerPos)
+  }, [pointsData])
+
+  const markerColors = useMemo(() => {
+    return pointsData.map(data => data.color || '#ff3366')
   }, [pointsData])
 
   // 選択されたポイントのインデックスを取得
@@ -172,7 +176,7 @@ export const BirdEyeView = memo(function BirdEyeView({ points, origin, onPointCl
       {/* インスタンシングマーカー - より低く */}
       <InstancedMarkers
         positions={markerPositions}
-        color="#ff3366"
+        colors={markerColors}
         height={1.2}
         selectedIndex={selectedIndex}
       />
