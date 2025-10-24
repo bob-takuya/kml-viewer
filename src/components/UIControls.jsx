@@ -42,7 +42,9 @@ export function UIControls({
     setError(null)
 
     try {
-      const response = await fetch('/造形第五F班.kmz')
+      // Viteのベースパスを考慮したパス（開発環境でも本番環境でも動作）
+      const samplePath = import.meta.env.BASE_URL + '造形第五F班.kmz'
+      const response = await fetch(samplePath)
       if (!response.ok) {
         throw new Error('サンプルファイルの読み込みに失敗しました')
       }
