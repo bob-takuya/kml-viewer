@@ -52,43 +52,55 @@ export async function loadKMZ(file) {
       // 本番環境（GitHub Pages）: 外部CORSプロキシを使用
       const isDevelopment = import.meta.env.DEV
 
+      console.log('🔗 ネットワークリンクURL:', kmlUrl)
+
       const corsProxies = isDevelopment
         ? [
-            `/api/kml?url=${encodeURIComponent(kmlUrl)}`, // Viteプロキシ
-            `https://corsproxy.io/?${encodeURIComponent(kmlUrl)}`,
-            `https://api.allorigins.win/raw?url=${encodeURIComponent(kmlUrl)}`
+            { name: 'Vite Proxy', url: `/api/kml?url=${encodeURIComponent(kmlUrl)}` },
+            { name: 'CORS.SH', url: `https://proxy.cors.sh/${kmlUrl}` },
+            { name: 'CORSProxy.io', url: `https://corsproxy.io/?${encodeURIComponent(kmlUrl)}` },
+            { name: 'AllOrigins', url: `https://api.allorigins.win/raw?url=${encodeURIComponent(kmlUrl)}` }
           ]
         : [
-            `https://corsproxy.io/?${encodeURIComponent(kmlUrl)}`, // 本番環境では外部プロキシを優先
-            `https://api.allorigins.win/raw?url=${encodeURIComponent(kmlUrl)}`
+            { name: 'CORS.SH', url: `https://proxy.cors.sh/${kmlUrl}` },
+            { name: 'CORSProxy.io', url: `https://corsproxy.io/?${encodeURIComponent(kmlUrl)}` },
+            { name: 'AllOrigins', url: `https://api.allorigins.win/raw?url=${encodeURIComponent(kmlUrl)}` },
+            { name: 'ThingProxy', url: `https://thingproxy.freeboard.io/fetch/${kmlUrl}` }
           ]
 
       let lastError = null
 
       // 各プロキシを順番に試す
       for (let i = 0; i < corsProxies.length; i++) {
-        const fetchUrl = corsProxies[i]
+        const proxy = corsProxies[i]
 
         try {
-          console.log(`試行 ${i + 1}/${corsProxies.length}: ${fetchUrl.substring(0, 100)}...`)
+          console.log(`🔄 試行 ${i + 1}/${corsProxies.length} [${proxy.name}]: ${proxy.url.substring(0, 100)}...`)
 
           perfLogger.start('ネットワークリンクフェッチ')
-          const response = await fetch(fetchUrl, {
+          const response = await fetch(proxy.url, {
             mode: 'cors',
-            credentials: 'omit'
+            credentials: 'omit',
+            headers: {
+              'Accept': 'application/vnd.google-earth.kml+xml, application/xml, text/xml, */*'
+            }
           })
+
+          console.log(`📡 ${proxy.name} レスポンス:`, response.status, response.statusText)
 
           if (!response.ok) {
             perfLogger.end('ネットワークリンクフェッチ', `失敗: ${response.status}`)
-            throw new Error(`HTTPエラー: ${response.status}`)
+            throw new Error(`HTTPエラー: ${response.status} ${response.statusText}`)
           }
 
           const kmlText = await response.text()
+          console.log(`📄 取得データサイズ: ${kmlText.length} 文字`)
+
           perfLogger.end('ネットワークリンクフェッチ', '成功')
-          console.log('KML取得成功')
+          console.log(`✅ KML取得成功 [${proxy.name}]`)
           return parseKML(kmlText)
         } catch (fetchError) {
-          console.error(`試行 ${i + 1} 失敗:`, fetchError.message)
+          console.error(`❌ 試行 ${i + 1} [${proxy.name}] 失敗:`, fetchError.message)
           lastError = fetchError
           // 次のプロキシを試す
           continue
