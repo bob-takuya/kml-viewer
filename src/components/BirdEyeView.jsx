@@ -116,7 +116,7 @@ export const BirdEyeView = memo(function BirdEyeView({ points, origin, onPointCl
   }, [pointsData])
 
   const markerColors = useMemo(() => {
-    return pointsData.map(data => data.color || '#ff3366')
+    return pointsData.map(data => data.color || '#0288d1') // デフォルト: RGB(2, 136, 209)
   }, [pointsData])
 
   // 選択されたポイントのインデックスを取得

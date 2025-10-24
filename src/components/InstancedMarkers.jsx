@@ -129,7 +129,7 @@ export function InstancedMarkers({ positions, colors, height = 2, selectedIndex 
           <pointLight
             key={i}
             position={[pos[0], height, pos[2]]}
-            color={lightColor || '#ff3366'}
+            color={lightColor || '#0288d1'} // デフォルト: RGB(2, 136, 209)
             intensity={0.8}
             distance={3}
           />
