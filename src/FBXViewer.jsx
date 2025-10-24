@@ -184,7 +184,8 @@ export default function FBXViewer() {
       description: 'これはテスト用のポイントです。3Dモデルの中心付近に配置されています。',
       lat: 35.7148,
       lng: 139.7967,
-      imageUrl: null
+      imageUrl: null,
+      color: '#0288d1' // Google My Mapsのデフォルト色
     },
     {
       id: 'test-2',
@@ -192,7 +193,8 @@ export default function FBXViewer() {
       description: '2つ目のテストポイント。北側に配置されています。',
       lat: 35.7158,
       lng: 139.7967,
-      imageUrl: null
+      imageUrl: null,
+      color: '#0288d1'
     },
     {
       id: 'test-3',
@@ -200,7 +202,8 @@ export default function FBXViewer() {
       description: '3つ目のテストポイント。東側に配置されています。',
       lat: 35.7148,
       lng: 139.7977,
-      imageUrl: null
+      imageUrl: null,
+      color: '#0288d1'
     },
     {
       id: 'test-4',
@@ -208,7 +211,8 @@ export default function FBXViewer() {
       description: '4つ目のテストポイント。南西に配置されています。',
       lat: 35.7138,
       lng: 139.7957,
-      imageUrl: null
+      imageUrl: null,
+      color: '#0288d1'
     }
   ]
 

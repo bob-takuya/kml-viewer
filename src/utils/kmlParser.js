@@ -150,14 +150,24 @@ export async function loadKML(file) {
  * ABGR形式（KML）の色をRGB 16進数形式に変換
  * KML: aabbggrr (alpha, blue, green, red)
  * 出力: #rrggbb
+ *
+ * 注意: KMLの色はABGR形式で、アルファが00の場合は透明
+ * アルファが00でRGBが000000の場合は黒として扱われるべきだが、
+ * Google My Mapsでは通常ffを使うので、アルファを無視してRGBのみ抽出
  */
 function abgrToHex(abgr) {
   if (!abgr || abgr.length !== 8) return null
 
-  // ABGRからRGBを抽出
-  const rr = abgr.substring(6, 8)
-  const gg = abgr.substring(4, 6)
-  const bb = abgr.substring(2, 4)
+  const aa = abgr.substring(0, 2) // アルファ
+  const bb = abgr.substring(2, 4) // 青
+  const gg = abgr.substring(4, 6) // 緑
+  const rr = abgr.substring(6, 8) // 赤
+
+  // アルファが00の場合は透明なので、nullを返す
+  // ただし、Google My Mapsでは通常ffを使うので、ほとんどの場合は問題ない
+  if (aa === '00') {
+    console.warn(`アルファが0の色を検出: ${abgr}, RGB部分を使用: #${rr}${gg}${bb}`)
+  }
 
   return `#${rr}${gg}${bb}`
 }
@@ -291,9 +301,12 @@ function parseKML(kmlText) {
     const styleUrl = styleUrlElement?.textContent
 
     // スタイルから色を取得
-    let color = null
+    let color = '#0288d1' // Google My Mapsのデフォルト色 RGB(2, 136, 209)
     if (styleUrl && styleMap.has(styleUrl)) {
       color = styleMap.get(styleUrl)
+      console.log(`ポイント "${name}": スタイル ${styleUrl} → 色 ${color}`)
+    } else {
+      console.log(`ポイント "${name}": スタイルなし、デフォルト色を使用 ${color}`)
     }
 
     points.push({
@@ -306,7 +319,7 @@ function parseKML(kmlText) {
       lat: parseFloat(coords[1]),
       alt: coords.length > 2 ? parseFloat(coords[2]) : 0,
       styleUrl,
-      color // 色情報を追加
+      color // 色情報（常に設定される）
     })
   }
   perfLogger.end('Placemark処理', `${points.length}個`)

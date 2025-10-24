@@ -95,7 +95,9 @@ export function InstancedMarkers({ positions, colors, height = 2, selectedIndex 
         args={[circleGeometry, null, positions.length]}
       >
         <meshStandardMaterial
-          emissiveIntensity={0.5}
+          color="#ffffff" // 白を基準色として設定（頂点色と乗算される）
+          emissive="#ffffff" // 自己発光を白に設定
+          emissiveIntensity={0.3} // 発光強度を抑える
           vertexColors // 個別の色を有効化
         />
       </instancedMesh>
@@ -106,8 +108,10 @@ export function InstancedMarkers({ positions, colors, height = 2, selectedIndex 
         args={[cylinderGeometry, null, positions.length]}
       >
         <meshStandardMaterial
-          emissiveIntensity={0.4}
-          vertexColors // 個別の色を有効化
+          color="#ffffff"
+          emissive="#ffffff"
+          emissiveIntensity={0.2}
+          vertexColors
         />
       </instancedMesh>
 
@@ -117,8 +121,10 @@ export function InstancedMarkers({ positions, colors, height = 2, selectedIndex 
         args={[sphereGeometry, null, positions.length]}
       >
         <meshStandardMaterial
-          emissiveIntensity={0.8}
-          vertexColors // 個別の色を有効化
+          color="#ffffff"
+          emissive="#ffffff"
+          emissiveIntensity={0.5}
+          vertexColors
         />
       </instancedMesh>
 
